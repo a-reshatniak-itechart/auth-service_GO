@@ -1,12 +1,10 @@
-package main
+package http
 
 import (
 	_ "auth-service/docs" //is needed for swagger
-	"auth-service/src/application_context"
-	"auth-service/src/controller"
-	"auth-service/src/custom_error"
-	"auth-service/src/models"
-	"auth-service/src/service"
+	"auth-service/internal"
+	"auth-service/internal/application_context"
+	"auth-service/internal/custom_error"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth/gothic"
@@ -27,8 +25,8 @@ import (
 // @Failure      404  {object}  custom_error.AppError
 // @Failure      500  {object}  custom_error.AppError
 // @Router       /token [post]
-func getToken(context *gin.Context, controller controller.AuthController) {
-	authRequest := &models.AuthRequest{}
+func getToken(context *gin.Context, controller internal.AuthController) {
+	authRequest := &internal.AuthRequest{}
 	err := context.BindJSON(authRequest)
 	if err != nil {
 		context.AbortWithError(http.StatusBadRequest, err)
@@ -49,8 +47,8 @@ func getToken(context *gin.Context, controller controller.AuthController) {
 // @Failure      404  {object}  custom_error.AppError
 // @Failure      500  {object}  custom_error.AppError
 // @Router       /user [post]
-func saveUser(context *gin.Context, controller controller.AuthController) {
-	user := &models.UserCreateDto{}
+func saveUser(context *gin.Context, controller internal.AuthController) {
+	user := &internal.UserCreateDto{}
 	err := context.BindJSON(user)
 	if err != nil {
 		context.AbortWithError(http.StatusBadRequest, err)
@@ -71,7 +69,7 @@ func saveUser(context *gin.Context, controller controller.AuthController) {
 // @Failure      404  {object}  custom_error.AppError
 // @Failure      500  {object}  custom_error.AppError
 // @Router       /user [get]
-func getUserByToken(context *gin.Context, controller controller.AuthController) {
+func getUserByToken(context *gin.Context, controller internal.AuthController) {
 	token := context.Query("token")
 	if &token == nil {
 		context.AbortWithError(http.StatusBadRequest, fmt.Errorf("jwt is null"))
@@ -136,7 +134,7 @@ func getGoogleAuthPage(context *gin.Context) {
 // @Failure      404  {object}  custom_error.AppError
 // @Failure      500  {object}  custom_error.AppError
 // @Router       /auth/google/callback [get]
-func getGoogleAuthCallback(context *gin.Context, authService service.AuthService) {
+func getGoogleAuthCallback(context *gin.Context, authService internal.AuthService) {
 	user, err := gothic.CompleteUserAuth(context.Writer, context.Request)
 	if err != nil {
 		resolveResponse(
@@ -149,7 +147,7 @@ func getGoogleAuthCallback(context *gin.Context, authService service.AuthService
 
 	authResponse, err := authService.LogInThroughSocialNetwork(
 		context,
-		models.SocialNetworkUser{
+		internal.SocialNetworkUser{
 			Email:     user.Email,
 			FirstName: user.FirstName,
 			LastName:  user.LastName,

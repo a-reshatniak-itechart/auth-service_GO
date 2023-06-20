@@ -1,7 +1,7 @@
 package util
 
 import (
-	"auth-service/src/models"
+	"auth-service/internal"
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"log"
@@ -11,7 +11,7 @@ import (
 // todo required refactoring
 const hmacSampleSecret = "secret"
 
-func GenerateJwt(user models.User) (string, string) {
+func GenerateJwt(user internal.User) (string, string) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp":        time.Now().Add(10 * time.Minute).Unix(),
 		"authorized": true,

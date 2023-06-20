@@ -1,8 +1,9 @@
 package main
 
 import (
-	"auth-service/src/application_context"
-	"auth-service/src/config"
+	"auth-service/internal/application_context"
+	"auth-service/internal/config"
+	"auth-service/internal/http"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +20,6 @@ func main() {
 	application_context.LoadContext(&conf)
 
 	r := gin.Default()
-	InitRoutes(r)
+	http.InitRoutes(r)
 	r.Run(":9993")
 }
