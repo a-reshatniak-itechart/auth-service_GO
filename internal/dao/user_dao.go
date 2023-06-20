@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"auth-service/src/custom_error"
-	"auth-service/src/models"
+	"auth-service/internal"
+	"auth-service/internal/custom_error"
 	"context"
 	"errors"
 	"fmt"
@@ -17,8 +17,8 @@ func NewUserDao(db *gorm.DB) UserDao {
 	return UserDao{db}
 }
 
-func (ud UserDao) FindByEmail(ctx context.Context, email string) (models.User, error) {
-	user := models.User{}
+func (ud UserDao) FindByEmail(ctx context.Context, email string) (internal.User, error) {
+	user := internal.User{}
 	err := ud.db.WithContext(ctx).First(&user, "email=?", email).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return user, &custom_error.AppError{
@@ -30,7 +30,7 @@ func (ud UserDao) FindByEmail(ctx context.Context, email string) (models.User, e
 	return user, err
 }
 
-func (ud UserDao) SaveUser(ctx context.Context, user models.User) (models.User, error) {
+func (ud UserDao) SaveUser(ctx context.Context, user internal.User) (internal.User, error) {
 	err := ud.db.WithContext(ctx).Save(&user).Error
 	return user, err
 }

@@ -1,7 +1,7 @@
 package custom_validator
 
 import (
-	"auth-service/src/custom_error"
+	"auth-service/internal/custom_error"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 )

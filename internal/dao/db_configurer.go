@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"auth-service/src/config"
+	"auth-service/internal/config"
 	"database/sql"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
@@ -31,7 +31,7 @@ func Configure(config *config.Config) *gorm.DB {
 	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 
 	// Migrate the schema
-	//db.AutoMigrate(&models.User{})
+	//db.AutoMigrate(&internal.User{})
 	migrateDb(config)
 
 	return db

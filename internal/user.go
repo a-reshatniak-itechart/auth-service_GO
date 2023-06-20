@@ -1,6 +1,7 @@
-package models
+package internal
 
 import (
+	"context"
 	"github.com/google/uuid"
 )
 
@@ -11,4 +12,9 @@ type User struct {
 	FirstName    string    `gorm:"type:varchar(255)"`
 	LastName     string    `gorm:"type:varchar(255)"`
 	RefreshToken string    `gorm:"type:varchar(255)"`
+}
+
+type UserDatabase interface {
+	FindByEmail(ctx context.Context, email string) (User, error)
+	SaveUser(ctx context.Context, user User) (User, error)
 }
