@@ -6,6 +6,7 @@ import (
 	"auth-service/src/controller"
 	"auth-service/src/custom_error"
 	"auth-service/src/models"
+	"auth-service/src/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth/gothic"
@@ -33,7 +34,7 @@ func getToken(context *gin.Context, controller controller.AuthController) {
 		context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	obj, saveErr := controller.GenerateToken(authRequest)
+	obj, saveErr := controller.GenerateToken(context, authRequest)
 	resolveResponse(obj, saveErr, context)
 }
 
@@ -55,7 +56,7 @@ func saveUser(context *gin.Context, controller controller.AuthController) {
 		context.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	obj, saveErr := controller.SaveUser(*user)
+	obj, saveErr := controller.SaveUser(context, *user)
 	resolveResponse(obj, saveErr, context)
 }
 
@@ -76,7 +77,7 @@ func getUserByToken(context *gin.Context, controller controller.AuthController) 
 		context.AbortWithError(http.StatusBadRequest, fmt.Errorf("jwt is null"))
 		return
 	}
-	obj, err := controller.GetUserByToken(token)
+	obj, err := controller.GetUserByToken(context, token)
 	resolveResponse(obj, err, context)
 }
 
@@ -115,7 +116,7 @@ func getGoogleAuthPage(context *gin.Context) {
 	url, err := gothic.GetAuthURL(context.Writer, context.Request)
 	var appErr *custom_error.AppError = nil
 	if err != nil {
-		appErr = &custom_error.AppError{Message: "google auth failed", Error: err, HttpErrorCode: 400}
+		appErr = &custom_error.AppError{Message: "google auth failed", Err: err, HttpErrorCode: 400}
 	}
 
 	resolveResponse(url, appErr, context)
@@ -135,19 +136,19 @@ func getGoogleAuthPage(context *gin.Context) {
 // @Failure      404  {object}  custom_error.AppError
 // @Failure      500  {object}  custom_error.AppError
 // @Router       /auth/google/callback [get]
-func getGoogleAuthCallback(context *gin.Context) {
-	authService := application_context.ResolveAuthService()
+func getGoogleAuthCallback(context *gin.Context, authService service.AuthService) {
 	user, err := gothic.CompleteUserAuth(context.Writer, context.Request)
 	if err != nil {
 		resolveResponse(
 			nil,
-			&custom_error.AppError{Message: "Login through google is failed", HttpErrorCode: 400, Error: err},
+			&custom_error.AppError{Message: "Login through google is failed", HttpErrorCode: 400, Err: err},
 			context,
 		)
 		return
 	}
 
-	authResponse := authService.LogInThroughSocialNetwork(
+	authResponse, err := authService.LogInThroughSocialNetwork(
+		context,
 		models.SocialNetworkUser{
 			Email:     user.Email,
 			FirstName: user.FirstName,
@@ -155,7 +156,7 @@ func getGoogleAuthCallback(context *gin.Context) {
 		},
 	)
 
-	resolveResponse(authResponse, nil, context)
+	resolveResponse(authResponse, err, context)
 }
 
 func prometheusHandler() gin.HandlerFunc {
@@ -170,6 +171,8 @@ func InitRoutes(r *gin.Engine) {
 	logger := application_context.ResolveLogger()
 	logger.Info("Initiating routes")
 	controller := application_context.ResolveAuthController()
+	authService := application_context.ResolveAuthService()
+
 	r.POST("/token", func(context *gin.Context) {
 		getToken(context, controller)
 	})
@@ -189,17 +192,27 @@ func InitRoutes(r *gin.Engine) {
 	r.GET("/auth/google/url", getGoogleAuthPage)
 
 	r.GET("/auth/google/callback", func(context *gin.Context) {
-		getGoogleAuthCallback(context)
+		getGoogleAuthCallback(context, authService)
 	})
 
 	r.GET("/metrics", prometheusHandler())
 	logger.Info("Routes initiated")
 }
 
-func resolveResponse(obj any, err *custom_error.AppError, context *gin.Context) {
-	if err != nil {
-		context.JSON(err.HttpErrorCode, err.Message)
-	} else {
+func resolveResponse(obj any, err error, context *gin.Context) {
+	if err == nil {
 		context.JSON(http.StatusOK, obj)
+		return
 	}
+
+	appErr, ok := err.(*custom_error.AppError)
+	if !ok {
+		appErr = &custom_error.AppError{
+			Message:       "internal error",
+			HttpErrorCode: http.StatusInternalServerError,
+			Err:           err,
+		}
+	}
+
+	context.JSON(appErr.HttpErrorCode, appErr.Message)
 }

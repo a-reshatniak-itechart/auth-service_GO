@@ -1,8 +1,11 @@
 package dao
 
-import "auth-service/src/models"
+import (
+	"auth-service/src/models"
+	"context"
+)
 
 type UserDatabase interface {
-	FindByEmail(email string) models.User
-	SaveUser(user models.User) models.User
+	FindByEmail(ctx context.Context, email string) (models.User, error)
+	SaveUser(ctx context.Context, user models.User) (models.User, error)
 }
