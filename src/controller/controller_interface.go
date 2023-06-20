@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"auth-service/src/custom_error"
 	"auth-service/src/models"
+	"context"
 )
 
 type AuthController interface {
-	GenerateToken(req *models.AuthRequest) (*models.AuthResponse, *custom_error.AppError)
-	SaveUser(req models.UserCreateDto) (*models.UserDto, *custom_error.AppError)
-	GetUserByToken(tokenString string) (*models.UserDto, *custom_error.AppError)
+	GenerateToken(ctx context.Context, req *models.AuthRequest) (*models.AuthResponse, error)
+	SaveUser(ctx context.Context, req models.UserCreateDto) (*models.UserDto, error)
+	GetUserByToken(ctx context.Context, tokenString string) (*models.UserDto, error)
 }

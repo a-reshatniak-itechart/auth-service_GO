@@ -3,5 +3,9 @@ package custom_error
 type AppError struct {
 	Message       string
 	HttpErrorCode int
-	Error         error
+	Err           error
+}
+
+func (e *AppError) Error() string {
+	return e.Message
 }

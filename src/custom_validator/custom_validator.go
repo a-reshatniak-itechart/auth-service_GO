@@ -28,7 +28,7 @@ func (cv CustomValidator) Validate(dto interface{}) *custom_error.AppError {
 			return nil
 		}
 
-		appErr := &custom_error.AppError{Message: "Validation is failed: ", Error: err, HttpErrorCode: 400}
+		appErr := &custom_error.AppError{Message: "Validation is failed: ", Err: err, HttpErrorCode: 400}
 
 		for _, err := range err.(validator.ValidationErrors) {
 			fmt.Println("Validation error field")

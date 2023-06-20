@@ -1,13 +1,13 @@
 package service
 
 import (
-	"auth-service/src/custom_error"
 	"auth-service/src/models"
+	"context"
 )
 
 type AuthService interface {
-	GenerateToken(req *models.AuthRequest) (*models.AuthResponse, *custom_error.AppError)
-	SaveUser(user models.UserCreateDto) (*models.UserDto, *custom_error.AppError)
-	GetUserByToken(tokenString string) (*models.UserDto, *custom_error.AppError)
-	LogInThroughSocialNetwork(user models.SocialNetworkUser) *models.AuthResponse
+	GenerateToken(ctx context.Context, req *models.AuthRequest) (*models.AuthResponse, error)
+	SaveUser(ctx context.Context, user models.UserCreateDto) (*models.UserDto, error)
+	GetUserByToken(ctx context.Context, tokenString string) (*models.UserDto, error)
+	LogInThroughSocialNetwork(ctx context.Context, user models.SocialNetworkUser) (*models.AuthResponse, error)
 }

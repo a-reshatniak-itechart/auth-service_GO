@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"auth-service/src/custom_error"
 	"auth-service/src/custom_validator"
 	"auth-service/src/models"
 	"auth-service/src/service"
+	"context"
 )
 
 type AuthControllerImpl struct {
@@ -16,18 +16,18 @@ func NewAuthController(authService service.AuthService) AuthController {
 	return AuthControllerImpl{authService: authService, validator: custom_validator.NewValidator()}
 }
 
-func (ac AuthControllerImpl) GenerateToken(req *models.AuthRequest) (*models.AuthResponse, *custom_error.AppError) {
-	return ac.authService.GenerateToken(req)
+func (ac AuthControllerImpl) GenerateToken(ctx context.Context, req *models.AuthRequest) (*models.AuthResponse, error) {
+	return ac.authService.GenerateToken(ctx, req)
 }
 
-func (ac AuthControllerImpl) SaveUser(req models.UserCreateDto) (*models.UserDto, *custom_error.AppError) {
+func (ac AuthControllerImpl) SaveUser(ctx context.Context, req models.UserCreateDto) (*models.UserDto, error) {
 	err := ac.validator.Validate(&req)
 	if err != nil {
 		return nil, err
 	}
-	return ac.authService.SaveUser(req)
+	return ac.authService.SaveUser(ctx, req)
 }
 
-func (ac AuthControllerImpl) GetUserByToken(tokenString string) (*models.UserDto, *custom_error.AppError) {
-	return ac.authService.GetUserByToken(tokenString)
+func (ac AuthControllerImpl) GetUserByToken(ctx context.Context, tokenString string) (*models.UserDto, error) {
+	return ac.authService.GetUserByToken(ctx, tokenString)
 }

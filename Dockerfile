@@ -1,4 +1,4 @@
-FROM golang:1.20
+FROM golang:1.20 AS builder
 
 WORKDIR /app
 
@@ -7,8 +7,16 @@ RUN go mod download
 
 COPY . .
 
-RUN cd src && go build -o auth
+RUN go build -o auth ./src/.
+
+FROM alpine:latest
+
+RUN apk add libc6-compat
+
+WORKDIR /app
+COPY --from=builder /app/auth /app/auth
+COPY app.env app.env
 
 EXPOSE 9993
 
-CMD [ "./src/auth" ]
+CMD [ "/app/auth" ]
